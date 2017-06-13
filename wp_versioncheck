@@ -37,8 +37,10 @@ write_versions(){
   for FILE in $(locate wp-includes/version.php)
   do
     VERSTR=$(grep "\$wp_version" "$FILE" | sed 's/[^0-9.]*//g'| sed '/^$/d' | awk -F'.' '{print $1*10000 + $2*100 + $3*1}')
-    WP_I2=$( echo "$FILE" | sed 's/wp-includes\/version.php//g' )
-    WP_I="$(clean_fieldname \"$WP_I2\")";
+    #WP_I2=$( echo "$FILE" | sed 's/wp-includes\/version.php//g' )
+    WP_I2=${FILE//wp-includes\/version.php/}
+
+    WP_I="$(clean_fieldname "$WP_I2")";
   #  WP_I=$( ${FILE//wp-includes\/version.php/} ) # mightwork
 #    WP_V=$( echo "$VERSTR"  )  
 
@@ -66,7 +68,7 @@ detect_latest_stable(){
             | awk 'match($0, /filename=(.+)/, f){ print f[1];}' \
             | sed 's/[^0-9.]*//g'| awk -F'.' '{print $1*10000 + $2*100 + $3*1}')
     umask 077; # make file "secure"
-    echo "$WP_LATEST" > "$CACHEFILE";
+    echo "${WP_LATEST}:" > "$CACHEFILE";  # "value:" is min-value.. 
   else
     WP_LATEST=$(cat "$CACHEFILE"); 
   fi
@@ -77,7 +79,7 @@ detect_latest_stable(){
 
 case $1 in
     autoconf)
-        if [ $(locate "wp-includes/version.php" | wc -l ) -gt 0 ]; then
+        if [ "$(locate "wp-includes/version.php" | wc -l )" -gt 0 ]; then
             echo yes
             exit 0
         else
@@ -92,10 +94,11 @@ case $1 in
     config)
 
         echo -n "graph_order "
-        for FILE in $(locate wp-includes/version.php)
+        for FILE in $(locate "wp-includes/version.php")
         do
-          lab2=$( echo "$FILE" | sed 's/wp-includes\/version.php//g' )
-          lab="$(clean_fieldname \"$lab2\")";
+          #lab2=$( echo "$FILE" | sed 's/wp-includes\/version.php//g' );
+          lab2=${FILE//wp-includes\/version.php/}
+          lab="$(clean_fieldname "$lab2")";
           echo -n " $lab"
         done
         echo ""
@@ -110,8 +113,9 @@ case $1 in
 
         for FILE in $(locate "wp-includes/version.php")
         do
-          lab2=$( echo "$FILE" | sed 's/wp-includes\/version.php//g' )
-          lab="$(clean_fieldname \"$lab2\")";
+          #lab2=$( echo "$FILE" | sed 's/wp-includes\/version.php//g' )
+          lab2=${FILE//wp-includes\/version.php/}
+          lab="$(clean_fieldname "$lab2")";
           echo "$lab.label $lab2"
           echo "$lab.type GAUGE"
           echo "$lab.units-exponent 0"
